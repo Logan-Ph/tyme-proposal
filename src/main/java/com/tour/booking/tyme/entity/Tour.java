@@ -6,36 +6,55 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.tour.booking.tyme.service.Tour.TourCategory;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
 @Entity
 @Table(name = "tours")
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class Tour {
-    @Id
-    @Column(name = "id", length = 255)
-    private String id;
+	@Id
+	@Column(name = "id")
+	@GeneratedValue(strategy = GenerationType.UUID)
+	@Schema(hidden = true)
+	private String id;
 
-    @Column(name = "name", nullable = false, length = 255)
-    private String name;
+	@Column(name = "name", nullable = false)
+	private String name;
 
-    @Column(name = "description")
-    private String description;
+	@Column(name = "description")
+	private String description;
 
-    @Column(name = "price", nullable = false, precision = 19, scale = 2)
-    private BigDecimal price;
+	@Column(name = "price", nullable = false, precision = 19, scale = 2)
+	private BigDecimal price;
 
-    @Column(name = "availability", nullable = false)
-    private Integer availability;
+	@Column(name = "availability", nullable = false)
+	private Integer availability;
 
-    @Column(name = "category", nullable = false, length = 50)
-    private String category;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "category", nullable = false, length = 50)
+	private TourCategory category;
 
-    // Relationships
-    @OneToMany(mappedBy = "tour", cascade = CascadeType.ALL)
-    @ToString.Exclude
-    private List<Booking> bookings;
+	// Relationships
+	@OneToMany(mappedBy = "tourId", cascade = CascadeType.ALL)
+	@ToString.Exclude
+	@Schema(hidden = true)
+	private List<Booking> bookings;
+
+	@Builder
+	public Tour(String id, String name, String description, BigDecimal price, Integer availability, TourCategory category) {
+		this.id = id;
+		this.name = name;
+		this.description = description;
+		this.price = price;
+		this.availability = availability;
+		this.category = category;
+	}
+
+	
 }

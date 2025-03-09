@@ -1,7 +1,6 @@
 package com.tour.booking.tyme.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,20 +9,21 @@ import lombok.ToString;
 
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 @Entity
 @Getter
 @Setter
 @ToString
 @Table(name = "customers")
 @NoArgsConstructor
-@AllArgsConstructor
 @Builder
 public class Customer {
-
-    @Id
-    @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+	@Id
+	@Column(name = "id")
+	@GeneratedValue(strategy = GenerationType.UUID)
+	@Schema(hidden = true)
+	private String id;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -38,8 +38,15 @@ public class Customer {
     private String membershipTier;
 
     // Relationships
-    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
-    @ToString.Exclude
-    private List<Booking> bookings;
+	@OneToMany(mappedBy = "customerId", cascade = CascadeType.ALL)
+	@ToString.Exclude
+	private List<Booking> bookings;
 
+    @Builder
+    public Customer(String name, String email, String password, String membershipTier) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.membershipTier = membershipTier;
+    }
 }

@@ -9,5 +9,4 @@ public class TymeApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(TymeApplication.class, args);
 	}
-
 }

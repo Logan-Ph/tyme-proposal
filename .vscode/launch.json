@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-TymeApplication<tyme>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.tour.booking.tyme.TymeApplication",
+            "projectName": "tyme",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
