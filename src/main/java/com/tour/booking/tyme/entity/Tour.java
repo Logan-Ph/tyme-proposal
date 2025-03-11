@@ -8,20 +8,18 @@ import java.util.List;
 
 import com.tour.booking.tyme.service.Tour.TourCategory;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
 @Entity
 @Table(name = "tours")
 @Getter
 @Setter
 @ToString
+@AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class Tour {
 	@Id
 	@Column(name = "id")
 	@GeneratedValue(strategy = GenerationType.UUID)
-	@Schema(hidden = true)
 	private String id;
 
 	@Column(name = "name", nullable = false)
@@ -42,19 +40,5 @@ public class Tour {
 
 	// Relationships
 	@OneToMany(mappedBy = "tourId", cascade = CascadeType.ALL)
-	@ToString.Exclude
-	@Schema(hidden = true)
 	private List<Booking> bookings;
-
-	@Builder
-	public Tour(String id, String name, String description, BigDecimal price, Integer availability, TourCategory category) {
-		this.id = id;
-		this.name = name;
-		this.description = description;
-		this.price = price;
-		this.availability = availability;
-		this.category = category;
-	}
-
-	
 }

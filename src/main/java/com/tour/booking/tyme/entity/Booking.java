@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,42 +14,35 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 @Entity
 @Table(name = "bookings")
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @Getter
 @Setter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Booking {
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
 	@Column(name = "id")
-	@Schema(hidden = true)
-	private String id;
+	String id;
 
 	@Column(name = "customer_id", nullable = false)
-	private String customerId;
+	String customerId;
 
 	@Column(name = "tour_id", nullable = false)
-	private String tourId;
+	String tourId;
 
 	@Column(name = "booking_date", nullable = false)
-	private LocalDateTime bookingDate;
+	LocalDateTime bookingDate;
 
 	@Column(name = "status", nullable = false, length = 50)
-	private String status;
+	String status;
 
 	@Column(name = "voucher_id")
-	private String voucherId;
-
-	@Builder
-	public Booking(String customerId, String tourId, LocalDateTime bookingDate, String status, String voucherId) {
-		this.customerId = customerId;
-		this.tourId = tourId;
-		this.bookingDate = bookingDate;
-		this.status = status;
-		this.voucherId = voucherId;
-	}
+	String voucherId;
 }

@@ -10,20 +10,21 @@ import lombok.ToString;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+
 
 @Entity
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
 @Table(name = "vouchers")
 public class Voucher {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Schema(hidden = true)
     private String id;
 
     @Column(name = "code", nullable = false, unique = true, length = 50)
@@ -41,12 +42,4 @@ public class Voucher {
     @Column(name = "is_used", nullable = false)
     private Boolean isUsed;
 
-    @Builder
-    public Voucher(String code, String discountType, BigDecimal discountValue, LocalDate expirationDate, Boolean isUsed) {
-        this.code = code;
-        this.discountType = discountType;
-        this.discountValue = discountValue;
-        this.expirationDate = expirationDate;
-        this.isUsed = isUsed;
-    }
 }
