@@ -8,7 +8,7 @@ CREATE TABLE customers (
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
-    membership_tier VARCHAR(50) DEFAULT 'Normal',
+    membership_tier VARCHAR(50) DEFAULT 'NORMAL',
     CONSTRAINT unique_email UNIQUE KEY (email)
 ) ENGINE=InnoDB;
 
@@ -24,15 +24,25 @@ CREATE TABLE tours (
 ) ENGINE=InnoDB;
 
 -- 3. Create the vouchers table
+-- CREATE TABLE vouchers (
+--     id VARCHAR(255) PRIMARY KEY,
+--     code VARCHAR(50) NOT NULL,
+--     discount_type VARCHAR(50) NOT NULL,
+--     discount_value DECIMAL(19,2) NOT NULL,
+--     expiration_date DATE NOT NULL,
+--     quantity INT NOT NULL DEFAULT 0,
+--     CONSTRAINT unique_code UNIQUE KEY (code)
+-- ) ENGINE=InnoDB;
+
 CREATE TABLE vouchers (
     id VARCHAR(255) PRIMARY KEY,
     code VARCHAR(50) NOT NULL,
     discount_type VARCHAR(50) NOT NULL,
     discount_value DECIMAL(19,2) NOT NULL,
     expiration_date DATE NOT NULL,
-    is_used BOOLEAN DEFAULT FALSE,
     CONSTRAINT unique_code UNIQUE KEY (code)
 ) ENGINE=InnoDB;
+
 
 -- 4. Create the bookings table without payment_id initially
 CREATE TABLE bookings (
@@ -51,16 +61,13 @@ CREATE TABLE bookings (
 CREATE TABLE payments (
     id VARCHAR(255) PRIMARY KEY,
     booking_id VARCHAR(255) NOT NULL,
+    customer_id VARCHAR(255) NOT NULL,
     amount DECIMAL(19,2) NOT NULL,
     payment_date DATETIME NOT NULL,
     status VARCHAR(50) NOT NULL,
-    CONSTRAINT fk_booking FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT fk_booking FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_payment_customer FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB;
-
--- 6. Add payment_id to bookings with foreign key
-ALTER TABLE bookings
-ADD COLUMN payment_id VARCHAR(255) DEFAULT NULL,
-ADD CONSTRAINT fk_payment FOREIGN KEY (payment_id) REFERENCES payments(id) ON DELETE SET NULL ON UPDATE CASCADE;
 
 
 -- Add indexes for performance optimization
@@ -80,12 +87,13 @@ CREATE INDEX idx_customer_id ON bookings(customer_id);
 CREATE INDEX idx_tour_id ON bookings(tour_id);
 CREATE INDEX idx_booking_date ON bookings(booking_date);
 CREATE INDEX idx_status ON bookings(status);
-CREATE INDEX idx_payment_id ON bookings(payment_id);
 
 -- For payments
 CREATE INDEX idx_booking_id ON payments(booking_id);
 CREATE INDEX idx_payment_date ON payments(payment_date);
 CREATE INDEX idx_payment_status ON payments(status);
+CREATE INDEX idx_payment_customer_id on payments(customer_id);
+
 
 -- Add constraints for data integrity
 ALTER TABLE bookings
@@ -94,8 +102,12 @@ ADD CONSTRAINT chk_booking_status CHECK (status IN ('PENDING', 'CONFIRMED', 'CAN
 ALTER TABLE payments
 ADD CONSTRAINT chk_payment_status CHECK (status IN ('PENDING', 'SUCCESS', 'FAILED'));
 
+ALTER TABLE customers
+ADD CONSTRAINT chk_membership_tier CHECK (membership_tier IN ('NORMAL', 'LOYAL', 'PLATINUM' , 'VIP'));
+
 ALTER TABLE tours
-ADD CONSTRAINT chk_category CHECK (category IN ('THEME_PARK', 'ADVENTURE', 'BEACH', 'MOUNTAIN', 'WILDLIFE', 'HISTORICAL', 'CITY_TOUR', 'ECO_TOURISM', 'NIGHTLIFE', 'PHOTOGRAPHY'));
+ADD CONSTRAINT chk_category CHECK (category IN ('ADVENTURE', 'CITY_TOUR', 'SAFARI', 'CULTURAL', 'NATURE', 'FOOD_WINE', 'HISTORICAL', 'HIKING', 'THEME_PARK', 'BEACH', 'MOUNTAIN', 'WILDLIFE', 'ECO_TOURISM', 'NIGHTLIFE', 'PHOTOGRAPHY'));
 
 ALTER TABLE vouchers
 ADD CONSTRAINT chk_discount_type CHECK (discount_type IN ('FIXED', 'PERCENTAGE'));
+
