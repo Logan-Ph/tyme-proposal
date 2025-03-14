@@ -30,24 +30,18 @@ public class TourService {
 
     @Transactional
     public Tour createTour(Tour tour) {
-        return tourRepository.save(tour);
+        Tour createdTour = tourRepository.save(tour);
+        return createdTour;
     }
 
     @Transactional
     public List<Tour> createTours(List<Tour> tours) {
-        return tourRepository.saveAll(tours);
+        List<Tour> createdTours = tourRepository.saveAll(tours);
+        return createdTours;
     }
 
     @Transactional
-    public Tour updateTour(String id, Tour updatedTour) {
-        Tour tour = tourRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Tour not found"));
-        // Update tour fields
-        tour.setName(updatedTour.getName());
-        tour.setDescription(updatedTour.getDescription());
-        tour.setPrice(updatedTour.getPrice());
-        tour.setAvailability(updatedTour.getAvailability());
-        tour.setCategory(updatedTour.getCategory());
+    public Tour updateTour(Tour tour) {
         return tourRepository.save(tour);
     }
 

@@ -1,60 +1,76 @@
 package com.tour.booking.tyme.mapper;
 
-import com.tour.booking.tyme.dto.CustomerCreationDTO;
-import com.tour.booking.tyme.dto.CustomerDTO;
+import com.tour.booking.tyme.dto.request.CustomerRequest;
+import com.tour.booking.tyme.dto.response.CustomerResponse;
 import com.tour.booking.tyme.entity.Customer;
+import java.util.ArrayList;
+import java.util.List;
 import javax.annotation.processing.Generated;
 import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-03-11T15:21:37+0700",
+    date = "2025-03-14T16:25:14+0700",
     comments = "version: 1.6.3, compiler: Eclipse JDT (IDE) 3.41.0.z20250213-2037, environment: Java 21.0.6 (Eclipse Adoptium)"
 )
 @Component
 public class CustomerMapperImpl implements CustomerMapper {
 
     @Override
-    public CustomerDTO toDTO(Customer customer) {
+    public Customer toEntity(CustomerRequest customerRequest) {
+        if ( customerRequest == null ) {
+            return null;
+        }
+
+        Customer.CustomerBuilder customer = Customer.builder();
+
+        customer.email( customerRequest.getEmail() );
+        customer.name( customerRequest.getName() );
+        customer.password( customerRequest.getPassword() );
+
+        return customer.build();
+    }
+
+    @Override
+    public CustomerResponse toDTO(Customer customer) {
         if ( customer == null ) {
             return null;
         }
 
-        CustomerDTO.CustomerDTOBuilder customerDTO = CustomerDTO.builder();
+        CustomerResponse.CustomerResponseBuilder customerResponse = CustomerResponse.builder();
 
-        customerDTO.email( customer.getEmail() );
-        customerDTO.id( customer.getId() );
-        customerDTO.name( customer.getName() );
+        customerResponse.email( customer.getEmail() );
+        customerResponse.id( customer.getId() );
+        customerResponse.name( customer.getName() );
 
-        return customerDTO.build();
+        return customerResponse.build();
     }
 
     @Override
-    public Customer toEntity(CustomerDTO customerDTO) {
-        if ( customerDTO == null ) {
+    public List<CustomerResponse> toDTOs(List<Customer> customers) {
+        if ( customers == null ) {
             return null;
         }
 
-        Customer.CustomerBuilder customer = Customer.builder();
+        List<CustomerResponse> list = new ArrayList<CustomerResponse>( customers.size() );
+        for ( Customer customer : customers ) {
+            list.add( toDTO( customer ) );
+        }
 
-        customer.email( customerDTO.getEmail() );
-        customer.id( customerDTO.getId() );
-        customer.name( customerDTO.getName() );
-
-        return customer.build();
+        return list;
     }
 
     @Override
-    public Customer toEntity(CustomerCreationDTO customerCreationDTO) {
-        if ( customerCreationDTO == null ) {
+    public List<Customer> toEntities(List<CustomerRequest> customerRequests) {
+        if ( customerRequests == null ) {
             return null;
         }
 
-        Customer.CustomerBuilder customer = Customer.builder();
+        List<Customer> list = new ArrayList<Customer>( customerRequests.size() );
+        for ( CustomerRequest customerRequest : customerRequests ) {
+            list.add( toEntity( customerRequest ) );
+        }
 
-        customer.email( customerCreationDTO.getEmail() );
-        customer.name( customerCreationDTO.getName() );
-
-        return customer.build();
+        return list;
     }
 }

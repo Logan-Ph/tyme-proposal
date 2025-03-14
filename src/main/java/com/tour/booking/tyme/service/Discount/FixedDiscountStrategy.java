@@ -11,6 +11,6 @@ public class FixedDiscountStrategy implements DiscountStrategy {
 
     @Override
     public BigDecimal calculateDiscount(BigDecimal originalPrice) {
-        return originalPrice.subtract(discountAmount);
+        return originalPrice.subtract(discountAmount).max(BigDecimal.ZERO);
     }
 }

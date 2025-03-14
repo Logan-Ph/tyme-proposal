@@ -1,37 +1,46 @@
 package com.tour.booking.tyme.entity;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.jackson.Jacksonized;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.tour.booking.tyme.service.Payment.PaymentStatus;
+
 @Entity
 @Table(name = "payments")
-@NoArgsConstructor
-@Getter
-@Setter
-@AllArgsConstructor
+@Data
 @Builder
+@Jacksonized
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Payment {
 	@Id
 	@Column(name = "id")
 	@GeneratedValue(strategy = GenerationType.UUID)
-	private String id;
+	String id;
 
 	@Column(name = "booking_id", nullable = false)
-	private String bookingId;
+	String bookingId;
 
 	@Column(name = "amount", nullable = false, precision = 19, scale = 2)
-	private BigDecimal amount;
+	BigDecimal amount;
 
 	@Column(name = "payment_date", nullable = false)
-	private LocalDateTime paymentDate;
+	LocalDateTime paymentDate;
 
 	@Column(name = "status", nullable = false, length = 50)
-	private String status;
+	@Enumerated(EnumType.STRING)
+	PaymentStatus status;
+
+	@Column(name = "customer_id", nullable = false)
+	String customerId;
 }

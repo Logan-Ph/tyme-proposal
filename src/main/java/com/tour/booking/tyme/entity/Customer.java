@@ -1,46 +1,48 @@
 package com.tour.booking.tyme.entity;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.jackson.Jacksonized;
 
 import java.util.List;
 
 import com.tour.booking.tyme.service.MembershipTier.MembershipTierType;
 
 @Entity
-@Getter
-@Setter
-@ToString
 @Table(name = "customers")
+@Data
+@Builder
+@Jacksonized
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Customer {
 	@Id
 	@Column(name = "id")
 	@GeneratedValue(strategy = GenerationType.UUID)
-	private String id;
+	String id;
 
     @Column(name = "name", nullable = false)
-    private String name;
+    String name;
 
     @Column(name = "email", nullable = false, unique = true)
-    private String email;
+    String email;
 
     @Column(name = "password", nullable = false)
-    private String password;
+    String password;
 
     
     @Column(name = "membership_tier", nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
-    private MembershipTierType membershipTier;
+    MembershipTierType membershipTier;
 
     @OneToMany(mappedBy = "customerId", cascade = CascadeType.ALL)
 	@ToString.Exclude
-	private List<Booking> bookings;
+	List<Booking> bookings;
 }

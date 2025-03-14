@@ -1,6 +1,5 @@
 package com.tour.booking.tyme.controller;
 
-import com.tour.booking.tyme.dto.TourDTO;
 import com.tour.booking.tyme.entity.Tour;
 import com.tour.booking.tyme.service.Tour.TourCategory;
 import com.tour.booking.tyme.service.Tour.TourService;
@@ -30,6 +29,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import com.tour.booking.tyme.dto.request.TourRequest;
+import com.tour.booking.tyme.dto.response.TourResponse;
 
 @RestController
 @RequestMapping("/tours")
@@ -49,32 +50,21 @@ public class TourController {
         @RequestParam(defaultValue = "10") @Min(value = 1, message = "Size must be greater than 0") int size)
     {
         try {
-            // Get all tours
             Pageable pageable = PageRequest.of(page, size);
-
-            // Map the tours to the TourResponse object
-            Page<TourDTO> tours = tourService.getAllTours(pageable)
-            .map(tourMapper::toDTO);
-            return new ResponseEntity<>(tours, HttpStatus.OK);
-        } catch (PropertyReferenceException e) {
-            return new ResponseEntity<>("Invalid request parameters", HttpStatus.BAD_REQUEST);
+            Page<Tour> tours = tourService.getAllTours(pageable);
+            List<TourResponse> toursResponse = tourMapper.toDTOs(tours.getContent());
+            return new ResponseEntity<>(toursResponse, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get a tour by ID", description = "Retrieve a tour by its unique identifier")
     public ResponseEntity<Object> getTourById(
-        @PathVariable 
-        @NotBlank
-        @Size(min = 24, max = 128)
-        String id
-    ) {
+        @PathVariable @NotBlank @Size(min = 24, max = 128) String id) {
         try {
-            // Get the tour by ID
-            Tour tour = tourService.getTourById(id);
-
-            // Map the tour to the TourResponse object
-            TourDTO tourResponse = tourMapper.toDTO(tour);
+            TourResponse tourResponse = tourMapper.toDTO(tourService.getTourById(id));
             return tourResponse != null ?
                 new ResponseEntity<>(tourResponse, HttpStatus.OK) :
                 new ResponseEntity<>("Tour not found", HttpStatus.NOT_FOUND);
@@ -85,11 +75,11 @@ public class TourController {
 
     @PostMapping
     @Operation(summary = "Create a new tour", description = "Create a new tour with the provided details")
-    public ResponseEntity<Object> createTour(@RequestBody @NotNull Tour tour) {
+    public ResponseEntity<Object> createTour(@RequestBody @NotNull TourRequest tourRequest) {
         try {
-            Tour createdTour = tourService.createTour(tour);
-            TourDTO createdTourDTO = tourMapper.toDTO(createdTour);
-            return new ResponseEntity<>(createdTourDTO, HttpStatus.CREATED);
+            Tour createdTour = tourService.createTour(tourMapper.toEntity(tourRequest));
+            TourResponse createdTourResponse = tourMapper.toDTO(createdTour);
+            return new ResponseEntity<>(createdTourResponse, HttpStatus.CREATED);
         } catch (DataIntegrityViolationException e) {
             return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -97,12 +87,11 @@ public class TourController {
 
     @PostMapping("/bulk")
     @Operation(summary = "Create multiple tours", description = "Create multiple tours with the provided details")
-    public ResponseEntity<Object> createTours(@RequestBody @NotNull List<Tour> tours) {
+    public ResponseEntity<Object> createTours(@RequestBody @NotNull List<TourRequest> tourRequests) {
         try {
-            // Create the tours
-            List<Tour> createdTours = tourService.createTours(tours);
-            List<TourDTO> createdToursDTO = tourMapper.toDTOs(createdTours);
-            return new ResponseEntity<>(createdToursDTO, HttpStatus.CREATED);
+            List<Tour> createdTours = tourService.createTours(tourMapper.toEntities(tourRequests));
+            List<TourResponse> createdTourResponses = tourMapper.toDTOs(createdTours);
+            return new ResponseEntity<>(createdTourResponses, HttpStatus.CREATED);
         } catch (DataIntegrityViolationException e) {
             return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -112,12 +101,23 @@ public class TourController {
     @Operation(summary = "Update a tour", description = "Update an existing tour with the provided details")
     public ResponseEntity<Object> updateTour(
         @PathVariable @NotBlank @Size(min = 24, max = 128) String id,
-        @RequestBody @NotNull Tour updatedTour) {
-        Tour tour = tourService.updateTour(id, updatedTour);
-        TourDTO updatedTourDTO = tourMapper.toDTO(tour);
-        return tour != null ? 
-            new ResponseEntity<>(updatedTourDTO, HttpStatus.OK) :
-            new ResponseEntity<>("Tour not found", HttpStatus.NOT_FOUND);
+        @RequestBody @NotNull TourRequest tourRequest) {
+        try {
+            Tour tour = tourService.getTourById(id);
+            if (tour == null) {
+                return new ResponseEntity<>("Tour not found", HttpStatus.NOT_FOUND);
+            }
+            tour = tourMapper.toEntity(tourRequest);
+            tour.setId(id);
+            tour = tourService.updateTour(tour);
+            TourResponse updatedTourResponse = tourMapper.toDTO(tour);
+
+            return updatedTourResponse != null ? 
+                new ResponseEntity<>(updatedTourResponse, HttpStatus.OK) :
+                new ResponseEntity<>("Tour not found", HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -125,8 +125,12 @@ public class TourController {
     public ResponseEntity<Object> deleteTour(@PathVariable 
         @NotBlank @Size(min = 24, max = 128) String id) {
         try {
+            Tour tour = tourService.getTourById(id);
+            if (tour == null) {
+                return new ResponseEntity<>("Tour not found", HttpStatus.NOT_FOUND);
+            }
             tourService.deleteTour(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>("Tour deleted successfully", HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -137,8 +141,8 @@ public class TourController {
     public ResponseEntity<Object> searchTours(
         @RequestParam @NotBlank String query) {
         try {
-            List<TourDTO> toursDTO = tourMapper.toDTOs(tourService.searchTours(query));
-            return new ResponseEntity<>(toursDTO, HttpStatus.OK);
+            List<TourResponse> toursResponse = tourMapper.toDTOs(tourService.searchTours(query));
+            return new ResponseEntity<>(toursResponse, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -149,8 +153,8 @@ public class TourController {
     public ResponseEntity<Object> filterToursByCategory(
         @RequestParam @NotNull TourCategory category) {
         try {
-            List<TourDTO> toursDTO = tourMapper.toDTOs(tourService.filterToursByCategory(category));
-            return new ResponseEntity<>(toursDTO, HttpStatus.OK);
+            List<TourResponse> toursResponse = tourMapper.toDTOs(tourService.filterToursByCategory(category));
+            return new ResponseEntity<>(toursResponse, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -165,8 +169,8 @@ public class TourController {
             return new ResponseEntity<>("Minimum price cannot be greater than maximum price", HttpStatus.BAD_REQUEST);
     
         try {
-            List<TourDTO> toursDTO = tourMapper.toDTOs(tourService.filterToursByPrice(minPrice, maxPrice));
-            return new ResponseEntity<>(toursDTO, HttpStatus.OK);
+            List<TourResponse> toursResponse = tourMapper.toDTOs(tourService.filterToursByPrice(minPrice, maxPrice));
+            return new ResponseEntity<>(toursResponse, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -177,8 +181,8 @@ public class TourController {
     public ResponseEntity<Object> filterToursByAvailability(
             @RequestParam @Min(value = 0, message = "Minimum availability must be greater than or equal to 0") int minAvailability) {
         try {
-            List<TourDTO> toursDTO = tourMapper.toDTOs(tourService.filterToursByAvailability(minAvailability));
-            return new ResponseEntity<>(toursDTO, HttpStatus.OK);
+            List<TourResponse> toursResponse = tourMapper.toDTOs(tourService.filterToursByAvailability(minAvailability));
+            return new ResponseEntity<>(toursResponse, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }

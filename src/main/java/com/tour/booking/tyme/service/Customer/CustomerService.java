@@ -1,5 +1,7 @@
 package com.tour.booking.tyme.service.Customer;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +33,7 @@ public class CustomerService {
         return customerRepository.save(customer);
     }
 
+    @Transactional
     public Customer getCustomerById(String id) {
         return customerRepository.findById(id).orElse(null);
     }

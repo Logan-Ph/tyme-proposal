@@ -28,9 +28,13 @@ public class BookingController {
 
     @GetMapping
     @Operation(summary = "Get all bookings", description = "Retrieve all bookings")
-    public ResponseEntity<List<Booking>> getAllBookings() {
-        List<Booking> bookings = bookingService.getAllBookings();
-        return new ResponseEntity<>(bookings, HttpStatus.OK);
+    public ResponseEntity<Object> getAllBookings() {
+        try {
+            List<Booking> bookings = bookingService.getAllBookings();
+            return new ResponseEntity<>(bookings, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/{id}")
@@ -45,10 +49,16 @@ public class BookingController {
 
     @PostMapping
     @Operation(summary = "Create a new booking", description = "Create a new booking with the provided details")
-    public ResponseEntity<Object> createBooking(@RequestParam String customerId, @RequestParam String tourId, @RequestParam String voucherId) {
+    public ResponseEntity<Object> createBooking(@RequestParam String customerId, @RequestParam String tourId, @RequestParam(required = false) String voucherCode) {
         try {
-            Booking createdBooking = bookingService.createBooking(customerId, tourId, voucherId);
-            return new ResponseEntity<>(createdBooking, HttpStatus.CREATED);
+            Booking booking;
+            if (voucherCode != null) {
+                booking = bookingService.createBooking(customerId, tourId, voucherCode);
+            } else {
+                booking = bookingService.createBooking(customerId, tourId);
+            }
+
+            return new ResponseEntity<>(booking, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
@@ -68,14 +78,13 @@ public class BookingController {
         }
     }
 
-    // cancel booking by customer id and tour id
-    @PutMapping("/customer/{customerId}/tour/{tourId}")
-    @Operation(summary = "Cancel a booking by customer ID and tour ID", description = "Cancel a booking by customer ID and tour ID")
-    public ResponseEntity<Object> cancelBookingByCustomerIdAndTourId(
-        @PathVariable @NotBlank @Size(min = 24, max = 128) String customerId,
-        @PathVariable @NotBlank @Size(min = 24, max = 128) String tourId) {
+    // cancel booking by booking id
+    @PutMapping("/{bookingId}")
+    @Operation(summary = "Cancel a booking by booking ID", description = "Cancel a booking by booking ID")
+    public ResponseEntity<Object> cancelBookingByBookingId(
+        @PathVariable @NotBlank @Size(min = 24, max = 128) String bookingId) {
         try {
-            Booking booking = bookingService.cancelBookingByCustomerIdAndTourId(customerId, tourId);
+            Booking booking = bookingService.cancelBookingByBookingId(bookingId);
             return new ResponseEntity<>(booking, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);

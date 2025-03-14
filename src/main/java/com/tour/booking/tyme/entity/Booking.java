@@ -2,28 +2,32 @@ package com.tour.booking.tyme.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-import lombok.AllArgsConstructor;
+import com.tour.booking.tyme.service.Booking.BookingStatus;
+
 import lombok.experimental.FieldDefaults;
+import lombok.extern.jackson.Jacksonized;
 
 @Entity
 @Table(name = "bookings")
+@Data
+@Builder
+@Jacksonized
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-@Getter
-@Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Booking {
 	@Id
@@ -41,7 +45,8 @@ public class Booking {
 	LocalDateTime bookingDate;
 
 	@Column(name = "status", nullable = false, length = 50)
-	String status;
+	@Enumerated(EnumType.STRING)
+	BookingStatus status;
 
 	@Column(name = "voucher_id")
 	String voucherId;
